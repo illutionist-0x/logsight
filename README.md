@@ -176,3 +176,11 @@ Windows event log and web server log parsers, an alert channel (email or Telegra
 ## Sample data
 
 The sample_auth*.log files are synthetic. Some use well-known public DNS addresses (for example 8.8.8.8 and 1.1.1.1) as stand-ins for external IPs; those services are not attacking anyone. Reserved documentation addresses (203.0.113.x and similar) are used for the planted attack.
+
+## Screenshots
+
+![LogSight dashboard](docs/dashboard.png)
+
+## Screenshots
+
+![LogSight dashboard](docs/dashboard.png)
