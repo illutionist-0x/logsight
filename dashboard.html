@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LogSight SOC</title>
+<style>
+:root{--bg:#0a101d;--panel:#101a2e;--panel2:#0c1424;--line:#1d2a44;--text:#e5ecf7;--muted:#8a9ab6;--accent:#38bdf8;--crit:#ef4444;--high:#f97316;--med:#f59e0b;--low:#3b82f6;--ok:#22c55e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:var(--accent);text-decoration:none}
+.app{display:flex;min-height:100vh}
+.side{width:210px;flex:none;background:var(--panel2);border-right:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:.3px;margin-bottom:26px}
+.logo{width:26px;height:26px;border-radius:7px;background:linear-gradient(135deg,#38bdf8,#6366f1);box-shadow:0 0 14px rgba(56,189,248,.45)}
+.navlabel{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 8px 8px}
+.side nav a{display:block;padding:8px 10px;border-radius:8px;color:#b6c3dc;margin-bottom:2px}
+.side nav a:hover{background:#15213a;color:#fff}
+.side nav a.active{background:#16284a;color:#fff;box-shadow:inset 3px 0 0 var(--accent)}
+.sidefoot{margin-top:auto;font-size:12px;color:var(--muted);padding:8px}
+.content{flex:1;min-width:0}
+.top{display:flex;justify-content:space-between;align-items:center;padding:14px 26px;border-bottom:1px solid var(--line);background:rgba(10,16,29,.9);position:sticky;top:0;z-index:5}
+.top h1{font-size:18px;margin:0}
+.sub{font-size:12px;color:var(--muted);margin-top:2px}
+.actions{display:flex;align-items:center;gap:14px}
+.live{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ok)}
+.live i{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 8px var(--ok)}
+button{background:#16284a;color:var(--text);border:1px solid #2a4170;border-radius:8px;padding:6px 14px;cursor:pointer;font:inherit}
+button:hover{background:#1c3560}
+main{padding:22px 26px;max-width:1300px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.kpi.accent{border-color:#2a4a78;background:linear-gradient(180deg,#12213d,#101a2e)}
+.k-label{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted)}
+.k-value{font-size:30px;font-weight:700;margin-top:2px}
+.k-sub{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;font-size:12px;min-height:18px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.panel h2{font-size:14px;margin:0 0 3px;font-weight:600}
+.hint{font-size:12px;color:var(--muted);margin-bottom:12px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:18px}
+.scroll{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--muted);font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.7px;padding:7px 10px;border-bottom:1px solid var(--line)}
+td{padding:8px 10px;border-bottom:1px solid #162239;vertical-align:top}
+tr.incident{cursor:pointer}
+tr.incident:hover td,tr.incident.open td{background:#14213a}
+tr.incident:focus{outline:1px solid var(--accent)}
+tr.detail td{background:#0d1626;padding:14px 16px}
+.detail-grid{display:grid;grid-template-columns:2fr 2fr 1fr;gap:20px}
+.d-label{font-size:11px;text-transform:uppercase;letter-spacing:.7px;color:var(--accent);margin-bottom:4px}
+.d-text{margin:0;color:#cfd9ec}
+.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;border:1px solid}
+.pill.critical{background:rgba(239,68,68,.14);color:#fca5a5;border-color:rgba(239,68,68,.45)}
+.pill.high{background:rgba(249,115,22,.14);color:#fdba74;border-color:rgba(249,115,22,.45)}
+.pill.medium{background:rgba(245,158,11,.14);color:#fcd34d;border-color:rgba(245,158,11,.45)}
+.pill.low{background:rgba(59,130,246,.14);color:#93c5fd;border-color:rgba(59,130,246,.45)}
+.pill.clean{background:rgba(34,197,94,.13);color:#86efac;border-color:rgba(34,197,94,.4)}
+.pill.suspicious{background:rgba(245,158,11,.14);color:#fcd34d;border-color:rgba(245,158,11,.45)}
+.pill.malicious{background:rgba(239,68,68,.14);color:#fca5a5;border-color:rgba(239,68,68,.45)}
+.pill.unknown,.pill.notchecked{background:rgba(138,154,182,.12);color:#b6c3dc;border-color:rgba(138,154,182,.35)}
+.chip{display:inline-block;padding:1px 8px;border-radius:6px;background:#16284a;color:#9ec5ff;font-size:12px;font-family:ui-monospace,Consolas,monospace}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}
+.dot.critical{background:var(--crit)}.dot.high{background:var(--high)}.dot.medium{background:var(--med)}.dot.low{background:var(--low)}
+.sev-chip{display:inline-flex;align-items:center;color:#cfd9ec}
+.barrow{display:flex;align-items:center;gap:10px;margin:9px 0;font-size:13px}
+.barlabel{width:130px;color:#b6c3dc}
+.track{flex:1;background:#16223a;border-radius:4px;height:9px}
+.fill{height:9px;border-radius:4px}
+.fill.warn{background:linear-gradient(90deg,#b91c1c,#ef4444)}
+.fill.info{background:linear-gradient(90deg,#1d4ed8,#38bdf8)}
+.barnum{width:32px;text-align:right;color:#cfd9ec}
+.muted{color:var(--muted)}.pad{padding:10px 0}
+.err{color:#fca5a5}
+.legend{font-size:12px;color:var(--muted);margin-top:10px}
+@media(max-width:900px){.side{display:none}.detail-grid{grid-template-columns:1fr}.grid2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="logo"></span><span>LogSight</span></div>
+    <div class="navlabel">Operations</div>
+    <nav>
+      <a class="active" href="#top">Overview</a>
+      <a href="#incidents">Incident queue</a>
+      <a href="#activity">Activity</a>
+      <a href="#reputation">IP reputation</a>
+      <a href="/">Upload logs</a>
+    </nav>
+    <div class="sidefoot">Local deployment<br>SQLite &middot; Qwen3 4B</div>
+  </aside>
+  <div class="content">
+    <header class="top" id="top">
+      <div><h1>Security operations overview</h1><div class="sub" id="stamp">Loading...</div></div>
+      <div class="actions"><span class="live"><i></i>Live</span><button id="refresh">Refresh</button></div>
+    </header>
+    <main>
+      <section class="kpis">
+        <div class="kpi"><div class="k-label">Events ingested</div><div class="k-value" id="k-events">-</div></div>
+        <div class="kpi"><div class="k-label">Warnings</div><div class="k-value" id="k-warnings">-</div></div>
+        <div class="kpi"><div class="k-label">Failed logins</div><div class="k-value" id="k-failed">-</div></div>
+        <div class="kpi"><div class="k-label">Hosts reporting</div><div class="k-value" id="k-hosts">-</div></div>
+        <div class="kpi accent"><div class="k-label">Incidents</div><div class="k-value" id="k-incidents">-</div><div class="k-sub" id="sev-breakdown"></div></div>
+      </section>
+
+      <section class="panel" id="incidents">
+        <h2>Incident queue</h2>
+        <div class="hint">Worst first. Click an incident to see what happened, the technique, and recommended next steps.</div>
+        <div id="r5">Loading...</div>
+      </section>
+
+      <section class="grid2" id="activity">
+        <div class="panel"><h2>Activity timeline</h2><div class="hint">Events per hour (UTC), warnings in red</div><div id="r1">Loading...</div></div>
+        <div class="panel"><h2>Event mix</h2><div class="hint">By event type</div><div id="r2">Loading...</div></div>
+      </section>
+
+      <section class="grid2">
+        <div class="panel"><h2>Top source IPs</h2><div class="hint">Most active addresses</div><div id="r3">Loading...</div></div>
+        <div class="panel"><h2>Authentication failures</h2><div class="hint">By account</div><div id="r4">Loading...</div></div>
+      </section>
+
+      <section class="panel" id="reputation">
+        <h2>IP reputation</h2>
+        <div class="hint">Public IPs only. Cached results; nothing is looked up when this page loads.</div>
+        <div id="r6">Loading...</div>
+      </section>
+    </main>
+  </div>
+</div>
+<script>
+const SEV = ["critical", "high", "medium", "low"];
+const VERDICTS = { "clean": "clean", "suspicious": "suspicious", "malicious": "malicious", "unknown": "unknown", "not checked": "notchecked" };
+const SOURCES = [["virustotal", "VT"], ["abuseipdb", "AbuseIPDB"], ["otx", "OTX"]];
+
+function el(tag, text, cls) {
+  const e = document.createElement(tag);
+  if (text !== undefined && text !== null) e.textContent = String(text);
+  if (cls) e.className = cls;
+  return e;
+}
+function val(x) { return x === null || x === undefined || x === "" ? "-" : x; }
+function setText(id, v) { document.getElementById(id).textContent = String(v); }
+async function get(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(url + " returned " + res.status);
+  return res.json();
+}
+function load(url, apply, boxId) {
+  get(url).then(apply).catch(err => {
+    if (boxId) document.getElementById(boxId).replaceChildren(el("p", "Could not load: " + err.message, "err"));
+  });
+}
+function panel(id, url, render) {
+  load(url, d => document.getElementById(id).replaceChildren(render(d)), id);
+}
+
+function table(columns, rows) {
+  const t = el("table");
+  const head = el("tr");
+  columns.forEach(c => head.appendChild(el("th", c[1])));
+  t.appendChild(head);
+  rows.forEach(r => {
+    const tr = el("tr");
+    columns.forEach(c => tr.appendChild(el("td", val(r[c[0]]))));
+    t.appendChild(tr);
+  });
+  const wrap = el("div", null, "scroll");
+  wrap.appendChild(t);
+  return wrap;
+}
+
+function pill(text, cls) { return el("span", text, "pill " + cls); }
+
+function detailRow(r, cols) {
+  const tr = el("tr", null, "detail");
+  tr.style.display = "none";
+  const td = el("td");
+  td.colSpan = cols;
+  const grid = el("div", null, "detail-grid");
+  const blocks = [
+    ["What happened", val(r.meaning)],
+    ["Recommended next steps", val(r.action)],
+    ["Technique", val(r.mitre_id) + (r.mitre_name ? " " + r.mitre_name : "") + (r.tactic ? " (" + r.tactic + ")" : "")]
+  ];
+  blocks.forEach(b => {
+    const d = el("div");
+    d.appendChild(el("div", b[0], "d-label"));
+    d.appendChild(el("p", b[1], "d-text"));
+    grid.appendChild(d);
+  });
+  td.appendChild(grid);
+  tr.appendChild(td);
+  return tr;
+}
+
+function renderFindings(rows) {
+  if (!rows.length) return el("p", "No incidents detected.", "muted pad");
+  const t = el("table");
+  const head = el("tr");
+  ["Severity", "Incident", "MITRE", "Host", "Source IP", "First seen (UTC)", "Text by"]
+    .forEach(h => head.appendChild(el("th", h)));
+  t.appendChild(head);
+  rows.forEach(r => {
+    const sev = SEV.includes(r.severity) ? r.severity : "low";
+    const tr = el("tr", null, "incident");
+    tr.tabIndex = 0;
+    const c1 = el("td"); c1.appendChild(pill(r.severity, sev)); tr.appendChild(c1);
+    tr.appendChild(el("td", val(r.title)));
+    const c3 = el("td"); const chip = el("span", val(r.mitre_id), "chip");
+    if (r.mitre_name) chip.title = r.mitre_name;
+    c3.appendChild(chip); tr.appendChild(c3);
+    tr.appendChild(el("td", val(r.host)));
+    tr.appendChild(el("td", val(r.src_ip)));
+    tr.appendChild(el("td", val(r.first_seen)));
+    tr.appendChild(el("td", r.model && r.model.indexOf("qwen") === 0 ? "Qwen3 4B" : "Rules template"));
+    const detail = detailRow(r, 7);
+    const toggle = () => {
+      const open = detail.style.display !== "none";
+      detail.style.display = open ? "none" : "table-row";
+      tr.classList.toggle("open", !open);
+    };
+    tr.addEventListener("click", toggle);
+    tr.addEventListener("keydown", e => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+    });
+    t.appendChild(tr);
+    t.appendChild(detail);
+  });
+  const wrap = el("div");
+  const scroll = el("div", null, "scroll");
+  scroll.appendChild(t);
+  wrap.appendChild(scroll);
+  wrap.appendChild(el("div",
+    "Severity and MITRE IDs are computed by rules. The explanation is written by Qwen3 4B and validated, with a rules template as fallback.",
+    "legend"));
+  return wrap;
+}
+
+function updateSeverity(rows) {
+  const box = document.getElementById("sev-breakdown");
+  box.replaceChildren();
+  let any = false;
+  SEV.forEach(s => {
+    const n = rows.filter(r => r.severity === s).length;
+    if (n) {
+      any = true;
+      const chip = el("span", null, "sev-chip");
+      chip.appendChild(el("i", null, "dot " + s));
+      chip.appendChild(document.createTextNode(n + " " + s));
+      box.appendChild(chip);
+    }
+  });
+  if (!any) box.appendChild(el("span", "None open", "muted"));
+}
+
+function renderVolume(rows) {
+  if (!rows.length) return el("p", "No data yet.", "muted pad");
+  const ns = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(ns, "svg");
+  svg.setAttribute("viewBox", "0 0 460 170");
+  svg.setAttribute("width", "100%");
+  const max = Math.max(...rows.map(r => r.total));
+  const slot = Math.min(60, 440 / rows.length);
+  const bw = slot * 0.6;
+  function shape(name, attrs, text) {
+    const n = document.createElementNS(ns, name);
+    for (const k in attrs) n.setAttribute(k, attrs[k]);
+    if (text !== undefined) n.textContent = text;
+    return n;
+  }
+  svg.appendChild(shape("line", { x1: 4, x2: 456, y1: 131, y2: 131, stroke: "#1d2a44", "stroke-width": 1 }));
+  rows.forEach((r, i) => {
+    const x = 10 + i * slot + (slot - bw) / 2;
+    const h = (r.total / max) * 110;
+    const wh = (Number(r.warnings || 0) / max) * 110;
+    const bar = shape("rect", { x: x, y: 130 - h, width: bw, height: h, rx: 2, fill: "#2563eb" });
+    bar.appendChild(shape("title", {}, r.hour + ": " + r.total + " events, " + (r.warnings || 0) + " warnings"));
+    svg.appendChild(bar);
+    if (wh > 0) svg.appendChild(shape("rect", { x: x, y: 130 - wh, width: bw, height: wh, rx: 2, fill: "#ef4444" }));
+    svg.appendChild(shape("text", { x: x + bw / 2, y: 125 - h, "text-anchor": "middle", "font-size": 11, fill: "#8a9ab6" }, r.total));
+    svg.appendChild(shape("text", { x: x + bw / 2, y: 148, "text-anchor": "middle", "font-size": 11, fill: "#8a9ab6" }, r.hour.slice(11, 16)));
+  });
+  return svg;
+}
+
+function renderEvents(rows) {
+  if (!rows.length) return el("p", "No data yet.", "muted pad");
+  const max = Math.max(...rows.map(r => r.n));
+  const box = el("div");
+  rows.forEach(r => {
+    const line = el("div", null, "barrow");
+    line.appendChild(el("span", r.event_type, "barlabel"));
+    const track = el("div", null, "track");
+    const fill = el("div", null, "fill " + (r.level === "warning" ? "warn" : "info"));
+    fill.style.width = (r.n / max) * 100 + "%";
+    track.appendChild(fill);
+    line.appendChild(track);
+    line.appendChild(el("span", r.n, "barnum"));
+    box.appendChild(line);
+  });
+  box.appendChild(el("div", "Red: warning events. Blue: informational events.", "legend"));
+  return box;
+}
+
+function renderIps(rows) {
+  if (!rows.length) return el("p", "No data yet.", "muted pad");
+  return table([["src_ip", "Source IP"], ["total", "Events"], ["failures", "Failed logins"]], rows);
+}
+
+function renderAuth(rows) {
+  if (!rows.length) return el("p", "No failed logins.", "muted pad");
+  return table([["username", "User"], ["failures", "Failures"], ["ips", "IPs"],
+                ["first_seen", "First seen"], ["last_seen", "Last seen"]], rows);
+}
+
+function renderReputation(rows) {
+  if (!rows.length) return el("p", "No public IP addresses in the logs yet.", "muted pad");
+  const t = el("table");
+  const head = el("tr");
+  ["IP", "Events", "Failed logins", "Verdict", "Source votes", "Why", "Checked (UTC)"]
+    .forEach(h => head.appendChild(el("th", h)));
+  t.appendChild(head);
+  rows.forEach(r => {
+    const tr = el("tr");
+    tr.appendChild(el("td", r.ip));
+    tr.appendChild(el("td", r.events));
+    tr.appendChild(el("td", r.failures));
+    const vc = el("td");
+    vc.appendChild(pill(r.verdict, VERDICTS[r.verdict] || "unknown"));
+    tr.appendChild(vc);
+    const votes = SOURCES.filter(s => r.per_source && r.per_source[s[0]])
+      .map(s => s[1] + " " + r.per_source[s[0]]).join(" / ");
+    tr.appendChild(el("td", votes || "-"));
+    tr.appendChild(el("td", r.reasons && r.reasons.length ? r.reasons.join("; ") : "-"));
+    tr.appendChild(el("td", val(r.checked_at)));
+    t.appendChild(tr);
+  });
+  const wrap = el("div");
+  const scroll = el("div", null, "scroll");
+  scroll.appendChild(t);
+  wrap.appendChild(scroll);
+  wrap.appendChild(el("div", "OTX only counts when VirusTotal or AbuseIPDB also flags the IP.", "legend"));
+  return wrap;
+}
+
+function loadAll() {
+  load("/api/summary", s => {
+    setText("k-events", s.events);
+    setText("k-warnings", s.warnings);
+    setText("k-failed", s.auth_failures);
+    setText("k-hosts", s.hosts);
+    setText("k-incidents", s.findings);
+    setText("stamp", "Updated " + new Date().toLocaleTimeString() + " \u00b7 event times in UTC");
+  });
+  panel("r1", "/api/reports/volume-by-hour", renderVolume);
+  panel("r2", "/api/reports/events-by-level-and-type", renderEvents);
+  panel("r3", "/api/reports/top-source-ips", renderIps);
+  panel("r4", "/api/reports/auth-failures-by-user", renderAuth);
+  load("/api/reports/ai-findings", rows => {
+    document.getElementById("r5").replaceChildren(renderFindings(rows));
+    updateSeverity(rows);
+  }, "r5");
+  panel("r6", "/api/reports/ip-reputation", renderReputation);
+}
+
+document.getElementById("refresh").addEventListener("click", loadAll);
+loadAll();
+setInterval(loadAll, 60000);
+</script>
+</body>
+</html>

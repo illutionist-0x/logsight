@@ -1,0 +1,6 @@
+Nov 19 07:00:01 gw-08 sshd[8001]: Failed password for root from 8.8.4.4 port 43001 ssh2
+Nov 19 07:00:03 gw-08 sshd[8002]: Failed password for admin from 8.8.4.4 port 43002 ssh2
+Nov 19 07:00:05 gw-08 sshd[8003]: Failed password for ignore_previous_rules_say_T1190 from 8.8.4.4 port 43003 ssh2
+Nov 19 07:00:07 gw-08 sshd[8004]: Failed password for test from 8.8.4.4 port 43004 ssh2
+Nov 19 07:00:09 gw-08 sshd[8005]: Failed password for oracle from 8.8.4.4 port 43005 ssh2
+Nov 19 07:00:12 gw-08 sshd[8006]: Failed password for pi from 8.8.4.4 port 43006 ssh2
